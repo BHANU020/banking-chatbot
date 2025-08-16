@@ -1,0 +1,15 @@
+
+{% extends "base.html" %}{% block content %}
+<h1>Products</h1>
+<div class="card"><input id="q" placeholder="Search e.g. credit card"/><button onclick="loadProducts()">Search</button></div>
+<div id="list" class="list"></div>
+<script>
+async function loadProducts(){
+  const q=document.getElementById('q').value;
+  const res=await fetch(`/api/products/?q=${encodeURIComponent(q)}`);
+  const data=await res.json();
+  document.getElementById('list').innerHTML = data.map(p=>`<div class='item'><b>${p.name}</b> — ${p.category} • ${p.bank}</div>`).join('') || "<div class='muted'>No results</div>";
+}
+loadProducts();
+</script>
+{% endblock %}

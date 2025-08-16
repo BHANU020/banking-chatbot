@@ -1,0 +1,29 @@
+
+name: Deploy to Oracle VM
+on: { push: { branches: ["main"] } }
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Copy project to Oracle VM
+        uses: easingthemes/ssh-deploy@v4.1.12
+        with:
+          REMOTE_HOST: ${{ secrets.ORACLE_HOST }}
+          REMOTE_USER: ${{ secrets.ORACLE_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.ORACLE_SSH_KEY }}
+          SOURCE: "./"
+          TARGET: "${{ secrets.ORACLE_DEPLOY_PATH }}"
+      - name: Run docker compose on VM
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.ORACLE_HOST }}
+          username: ${{ secrets.ORACLE_USER }}
+          key: ${{ secrets.ORACLE_SSH_KEY }}
+          script: |
+            cd ${{ secrets.ORACLE_DEPLOY_PATH }}
+            cp -n .env.example .env || true
+            docker compose pull || true
+            docker compose build --no-cache
+            docker compose down
+            docker compose up -d
